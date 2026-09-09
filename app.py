@@ -1,8 +1,15 @@
-from flask import Flask, render_template
+import re
+import sqlite3
 
-from database.db import get_db, init_db, seed_db
+from flask import Flask, redirect, render_template, request, url_for
+
+from database.db import (create_user, get_db, get_user_by_email, init_db,
+                         seed_db)
 
 app = Flask(__name__)
+
+# Deliberately permissive — catches obvious typos, not every RFC 5322 edge case.
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 with app.app_context():
     init_db()
@@ -18,14 +25,44 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "GET":
+        return render_template("register.html")
+
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")   # never stripped
+
+    error = None
+    if not name or not email or not password:
+        error = "Please fill in every field."
+    elif len(name) < 2:
+        error = "Please enter your full name."
+    elif not EMAIL_RE.match(email):
+        error = "Please enter a valid email address."
+    elif len(password) < 8:
+        error = "Password must be at least 8 characters."
+    elif get_user_by_email(email):
+        error = "An account with that email already exists."
+
+    if error is None:
+        try:
+            create_user(name, email, password)
+        except sqlite3.IntegrityError:
+            error = "An account with that email already exists."
+        else:
+            return redirect(url_for("login", registered=1))
+
+    return render_template("register.html", error=error, name=name, email=email)
 
 
 @app.route("/login")
 def login():
-    return render_template("login.html")
+    success = None
+    if request.args.get("registered"):
+        success = "Account created — please sign in."
+    return render_template("login.html", success=success)
 
 
 @app.route("/terms")
