@@ -94,3 +94,40 @@ def seed_db():
         conn.commit()
     finally:
         conn.close()
+
+
+def get_user_by_email(email):
+    """Return the user row for an email, or None if nobody has registered it.
+
+    The lookup normalises the email so the match is case-insensitive even
+    though SQLite's UNIQUE constraint is not.
+    """
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT * FROM users WHERE email = ?",
+            (email.strip().lower(),),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
+def create_user(name, email, password):
+    """Hash the password, insert the user, return the new row id.
+
+    Raises sqlite3.IntegrityError if the email is already taken.
+    """
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
+            (
+                name.strip(),
+                email.strip().lower(),
+                generate_password_hash(password),
+            ),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
