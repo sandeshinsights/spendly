@@ -1,12 +1,17 @@
+import os
 import re
 import sqlite3
 
-from flask import Flask, redirect, render_template, request, url_for
+from flask import (Flask, redirect, render_template, request, session,
+                   url_for)
 
 from database.db import (create_user, get_db, get_user_by_email, init_db,
-                         seed_db)
+                         seed_db, verify_credentials)
 
 app = Flask(__name__)
+
+# Dev-only fallback; set SECRET_KEY in the environment for anything real.
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # Deliberately permissive — catches obvious typos, not every RFC 5322 edge case.
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -57,12 +62,41 @@ def register():
     return render_template("register.html", error=error, name=name, email=email)
 
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    success = None
-    if request.args.get("registered"):
-        success = "Account created — please sign in."
-    return render_template("login.html", success=success)
+    if session.get("user_id"):
+        return redirect(url_for("landing"))
+
+    if request.method == "GET":
+        success = None
+        if request.args.get("registered"):
+            success = "Account created — please sign in."
+        return render_template("login.html", success=success)
+
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+
+    error = None
+    user = None
+    if not email or not password:
+        error = "Please enter your email and password."
+    else:
+        user = verify_credentials(email, password)
+        if user is None:
+            error = "Incorrect email or password."
+
+    if error:
+        return render_template("login.html", error=error, email=email)
+
+    session["user_id"] = user["id"]
+    session["user_name"] = user["name"]
+    return redirect(url_for("landing"))
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 @app.route("/terms")
@@ -73,11 +107,6 @@ def terms():
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-@app.route("/logout")
-def logout():
-    return "Logout — coming in Step 3"
-
 
 @app.route("/profile")
 def profile():
