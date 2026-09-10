@@ -10,7 +10,7 @@ import sqlite3
 from datetime import date
 from pathlib import Path
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 DB_PATH = Path(__file__).resolve().parent.parent / "expense_tracker.db"
 
@@ -110,6 +110,18 @@ def get_user_by_email(email):
         ).fetchone()
     finally:
         conn.close()
+
+
+def verify_credentials(email, password):
+    """Return the user row if the email and password match, else None.
+
+    Deliberately does not distinguish an unknown email from a wrong password so
+    callers cannot leak which accounts exist.
+    """
+    user = get_user_by_email(email)
+    if user is None or not check_password_hash(user["password_hash"], password):
+        return None
+    return user
 
 
 def create_user(name, email, password):
