@@ -5,8 +5,10 @@ import sqlite3
 from flask import (Flask, redirect, render_template, request, session,
                    url_for)
 
-from database.db import (create_user, get_db, get_user_by_email, init_db,
-                         seed_db, verify_credentials)
+from database.db import (create_user, get_db, get_user_by_email,
+                         init_db, seed_db, verify_credentials)
+from database.queries import (get_category_breakdown, get_recent_transactions,
+                              get_summary_stats, get_user_by_id)
 
 app = Flask(__name__)
 
@@ -15,6 +17,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # Deliberately permissive — catches obvious typos, not every RFC 5322 edge case.
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 
 with app.app_context():
     init_db()
@@ -104,14 +107,39 @@ def terms():
     return render_template("terms.html")
 
 
+@app.route("/profile")
+def profile():
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    user = get_user_by_id(session["user_id"])
+    if user is None:
+        # Stale cookie — the referenced user no longer exists.
+        session.clear()
+        return redirect(url_for("login"))
+
+    # --- Transaction history (Subagent 1) ---
+    recent_transactions = get_recent_transactions(session["user_id"])
+
+    # --- Summary stats (Subagent 2) ---
+    summary_stats = get_summary_stats(session["user_id"])
+
+    # --- Category breakdown (Subagent 3) ---
+    category_breakdown = get_category_breakdown(session["user_id"])
+
+    return render_template(
+        "profile.html",
+        user=user,
+        member_since=user["member_since"],
+        recent_transactions=recent_transactions,
+        summary_stats=summary_stats,
+        category_breakdown=category_breakdown,
+    )
+
+
 # ------------------------------------------------------------------ #
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
-
-@app.route("/profile")
-def profile():
-    return "Profile page — coming in Step 4"
-
 
 @app.route("/expenses/add")
 def add_expense():
