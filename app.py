@@ -1,6 +1,7 @@
 import os
 import re
 import sqlite3
+from datetime import datetime
 
 from flask import (Flask, redirect, render_template, request, session,
                    url_for)
@@ -17,6 +18,20 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # Deliberately permissive — catches obvious typos, not every RFC 5322 edge case.
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _valid_date(value):
+    """Return value if it's a 'YYYY-MM-DD' string, else None."""
+    if not value:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError:
+        return None
+    return value
 
 
 with app.app_context():
@@ -118,8 +133,11 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
+    start = _valid_date(request.args.get("start"))
+    end = _valid_date(request.args.get("end"))
+
     # --- Transaction history (Subagent 1) ---
-    recent_transactions = get_recent_transactions(session["user_id"])
+    recent_transactions = get_recent_transactions(session["user_id"], start=start, end=end)
 
     # --- Summary stats (Subagent 2) ---
     summary_stats = get_summary_stats(session["user_id"])
@@ -134,6 +152,8 @@ def profile():
         recent_transactions=recent_transactions,
         summary_stats=summary_stats,
         category_breakdown=category_breakdown,
+        start=start,
+        end=end,
     )
 
 

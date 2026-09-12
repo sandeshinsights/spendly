@@ -745,6 +745,93 @@ a { color: inherit; text-decoration: none; }
 .profile-actions a:hover { text-decoration: underline; }
 
 /* ------------------------------------------------------------------ */
+/* Transactions                                                        */
+/* ------------------------------------------------------------------ */
+
+.transactions-section {
+    padding: 0 2rem 3rem;
+}
+
+.transactions-inner {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.transactions-title {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    color: var(--ink);
+    margin-bottom: 1rem;
+}
+
+.filter-form {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-form .form-group {
+    margin-bottom: 0;
+}
+
+.filter-form .form-input {
+    width: auto;
+}
+
+.filter-clear {
+    color: var(--accent);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding-bottom: 0.65rem;
+}
+
+.filter-clear:hover { text-decoration: underline; }
+
+.transactions-table-wrap {
+    overflow-x: auto;
+}
+
+.transactions-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.transactions-table th {
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.transactions-table td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-soft);
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.transactions-table tr:first-child td { border-top: none; }
+
+.transactions-amount {
+    text-align: right;
+    font-weight: 500;
+}
+
+.transactions-empty {
+    text-align: center;
+    color: var(--ink-muted);
+    padding: 2rem 0;
+}
+
+/* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -766,4 +853,11 @@ a { color: inherit; text-decoration: none; }
     }
 
     .profile-value { text-align: left; }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-form .form-input { width: 100%; }
 }
