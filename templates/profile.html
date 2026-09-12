@@ -35,4 +35,56 @@
     </div>
 </section>
 
+<section class="transactions-section">
+    <div class="transactions-inner">
+
+        <h2 class="transactions-title">Recent transactions</h2>
+
+        <form method="GET" action="{{ url_for('profile') }}" class="filter-form">
+            <div class="form-group">
+                <label for="start">From</label>
+                <input type="date" id="start" name="start" class="form-input" value="{{ start or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="end">To</label>
+                <input type="date" id="end" name="end" class="form-input" value="{{ end or '' }}">
+            </div>
+            <button type="submit" class="btn-primary">Filter</button>
+            {% if start or end %}
+            <a href="{{ url_for('profile') }}" class="filter-clear">Clear filter</a>
+            {% endif %}
+        </form>
+
+        {% if recent_transactions %}
+        <div class="transactions-table-wrap">
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="transactions-amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for txn in recent_transactions %}
+                    <tr>
+                        <td>{{ txn.date }}</td>
+                        <td>{{ txn.description or '—' }}</td>
+                        <td>{{ txn.category }}</td>
+                        <td class="transactions-amount">&#8377;{{ '%.2f'|format(txn.amount) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="transactions-empty">
+            {% if start or end %}No transactions in this range.{% else %}No transactions yet.{% endif %}
+        </p>
+        {% endif %}
+
+    </div>
+</section>
+
 {% endblock %}

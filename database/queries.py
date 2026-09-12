@@ -76,19 +76,40 @@ def get_summary_stats(user_id):
     }
 
 
-def get_recent_transactions(user_id, limit=10):
-    """Return the user's most recent expenses, newest-first, as a list of dicts."""
+def get_recent_transactions(user_id, start=None, end=None, limit=10):
+    """Return the user's most recent expenses, newest-first, as a list of dicts.
+
+    start/end are optional 'YYYY-MM-DD' strings that narrow the result to
+    expenses with date >= start and/or date <= end (inclusive). An inverted
+    range (start after end) simply matches no rows, since both bounds are
+    ANDed together.
+    """
     conn = get_db()
     try:
+        clauses = ["user_id = ?"]
+        params = [user_id]
+
+        if start:
+            clauses.append("date >= ?")
+            params.append(start)
+        if end:
+            clauses.append("date <= ?")
+            params.append(end)
+
+        params.append(limit)
+
+        # clauses only ever contains fixed strings from this function — never
+        # user-supplied text — so f-string-joining them here is safe. Values
+        # still flow through parameterised `?` placeholders below.
         rows = conn.execute(
-            """
+            f"""
             SELECT date, description, category, amount
             FROM expenses
-            WHERE user_id = ?
+            WHERE {' AND '.join(clauses)}
             ORDER BY date DESC, id DESC
             LIMIT ?
             """,
-            (user_id, limit),
+            params,
         ).fetchall()
     finally:
         conn.close()
