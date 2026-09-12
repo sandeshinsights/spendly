@@ -112,6 +112,18 @@ def get_user_by_email(email):
         conn.close()
 
 
+def get_user_by_id(user_id):
+    """Return the user row for an id, or None if no such user exists."""
+    conn = get_db()
+    try:
+        return conn.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+    finally:
+        conn.close()
+
+
 def verify_credentials(email, password):
     """Return the user row if the email and password match, else None.
 

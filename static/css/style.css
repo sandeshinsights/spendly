@@ -652,6 +652,99 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ------------------------------------------------------------------ */
+/* Profile page                                                        */
+/* ------------------------------------------------------------------ */
+
+.profile-section {
+    min-height: calc(100vh - 60px - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+}
+
+.profile-inner {
+    width: 100%;
+    max-width: 480px;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.profile-monogram {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    line-height: 1;
+}
+
+.profile-name {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--ink);
+    margin-bottom: 0.35rem;
+}
+
+.profile-email {
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+}
+
+.profile-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.profile-row + .profile-row {
+    border-top: 1px solid var(--border-soft);
+}
+
+.profile-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+}
+
+.profile-value {
+    font-size: 0.95rem;
+    color: var(--ink);
+    text-align: right;
+}
+
+.profile-actions {
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.profile-actions a {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.profile-actions a:hover { text-decoration: underline; }
+
+/* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -662,7 +755,15 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 600px) {
-    .nav-links a:not(.nav-cta):not([href$="/logout"]) { display: none; }
+    .nav-links a:not(.nav-cta):not([href$="/logout"]):not(.nav-user) { display: none; }
     .hero { padding: 3rem 1rem 2rem; }
     .hero-actions { flex-direction: column; align-items: stretch; }
+
+    .profile-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .profile-value { text-align: left; }
 }
