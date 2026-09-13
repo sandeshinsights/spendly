@@ -39,6 +39,7 @@
     <div class="transactions-inner">
 
         <h2 class="transactions-title">Recent transactions</h2>
+        <a href="{{ url_for('add_expense') }}" class="btn-primary">Add expense</a>
 
         <form method="GET" action="{{ url_for('profile') }}" class="filter-form">
             <div class="form-group">

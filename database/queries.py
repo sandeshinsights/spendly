@@ -125,6 +125,23 @@ def get_recent_transactions(user_id, start=None, end=None, limit=10):
     ]
 
 
+def create_expense(user_id, amount, category, date, description):
+    """Insert a new expense row, return its id."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            """
+            INSERT INTO expenses (user_id, amount, category, date, description)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (user_id, amount, category, date, description),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
 def get_category_breakdown(user_id):
     """Return per-category totals and percentages (summing to 100) for a user."""
     conn = get_db()
