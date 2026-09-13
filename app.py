@@ -1,15 +1,16 @@
 import os
 import re
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 
 from flask import (Flask, redirect, render_template, request, session,
                    url_for)
 
-from database.db import (create_user, get_db, get_user_by_email,
+from database.db import (CATEGORIES, create_user, get_db, get_user_by_email,
                          init_db, seed_db, verify_credentials)
-from database.queries import (get_category_breakdown, get_recent_transactions,
-                              get_summary_stats, get_user_by_id)
+from database.queries import (create_expense, get_category_breakdown,
+                              get_recent_transactions, get_summary_stats,
+                              get_user_by_id)
 
 app = Flask(__name__)
 
@@ -161,9 +162,56 @@ def profile():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "GET":
+        return render_template(
+            "add_expense.html",
+            categories=CATEGORIES,
+            today=date.today().isoformat(),
+        )
+
+    amount_raw = request.form.get("amount", "").strip()
+    category = request.form.get("category", "").strip()
+    expense_date = request.form.get("date", "").strip()
+    description = request.form.get("description", "").strip() or None
+
+    error = None
+    amount = None
+    if not amount_raw:
+        error = "Please enter an amount."
+    else:
+        try:
+            amount = float(amount_raw)
+        except ValueError:
+            error = "Amount must be a number."
+        else:
+            if amount <= 0:
+                error = "Amount must be greater than zero."
+
+    if error is None and category not in CATEGORIES:
+        error = "Please choose a valid category."
+
+    if error is None and _valid_date(expense_date) is None:
+        error = "Please enter a valid date."
+
+    if error:
+        return render_template(
+            "add_expense.html",
+            error=error,
+            categories=CATEGORIES,
+            today=date.today().isoformat(),
+            amount=amount_raw,
+            category=category,
+            date=expense_date,
+            description=description or "",
+        )
+
+    create_expense(session["user_id"], amount, category, expense_date, description)
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")
